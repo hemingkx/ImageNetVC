@@ -1,0 +1,144 @@
+altair==4.2.2
+antlr4-python3-runtime==4.9.3
+asttokens==2.2.1
+attrs==22.2.0
+backcall==0.2.0
+blinker==1.5
+blis==0.7.9
+braceexpand==0.1.7
+brotlipy==0.7.0
+cachetools==5.3.0
+catalogue==2.0.8
+certifi @ file:///croot/certifi_1671487769961/work/certifi
+cffi @ file:///croot/cffi_1670423208954/work
+cfgv==3.3.1
+charset-normalizer @ file:///tmp/build/80754af9/charset-normalizer_1630003229654/work
+click==8.1.3
+confection==0.0.4
+contexttimer==0.3.3
+contourpy==1.0.7
+cryptography @ file:///croot/cryptography_1677533068310/work
+cycler==0.11.0
+cymem==2.0.7
+decorator==5.1.1
+decord==0.6.0
+distlib==0.3.6
+einops==0.6.0
+entrypoints==0.4
+executing==1.2.0
+fairscale==0.4.4
+filelock==3.9.1
+flit_core @ file:///opt/conda/conda-bld/flit-core_1644941570762/work/source/flit_core
+fonttools==4.39.0
+ftfy==6.1.1
+gitdb==4.0.10
+GitPython==3.1.31
+huggingface-hub==0.13.2
+identify==2.5.20
+idna @ file:///croot/idna_1666125576474/work
+imageio==2.26.0
+importlib-metadata==6.0.0
+importlib-resources==5.12.0
+iopath==0.1.10
+ipython==8.11.0
+jedi==0.18.2
+Jinja2==3.1.2
+jsonschema==4.17.3
+kaggle==1.5.13
+kiwisolver==1.4.4
+langcodes==3.3.0
+lazy_loader==0.1
+markdown-it-py==2.2.0
+MarkupSafe==2.1.2
+matplotlib==3.7.1
+matplotlib-inline==0.1.6
+mdurl==0.1.2
+mkl-fft==1.3.1
+mkl-random @ file:///tmp/build/80754af9/mkl_random_1626186066731/work
+mkl-service==2.4.0
+murmurhash==1.0.9
+networkx==3.0
+nodeenv==1.7.0
+numpy @ file:///croot/numpy_and_numpy_base_1672336185480/work
+omegaconf==2.3.0
+opencv-python-headless==4.5.5.64
+opendatasets==0.1.22
+packaging==23.0
+pandas==1.5.3
+parso==0.8.3
+pathy==0.10.1
+pexpect==4.8.0
+pickleshare==0.7.5
+Pillow==9.4.0
+platformdirs==3.1.1
+plotly==5.13.1
+portalocker==2.7.0
+pre-commit==3.1.1
+preshed==3.0.8
+prompt-toolkit==3.0.38
+protobuf==3.20.3
+ptyprocess==0.7.0
+pure-eval==0.2.2
+pyarrow==11.0.0
+pycocoevalcap==1.2
+pycocotools==2.0.6
+pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
+pydantic==1.10.6
+pydeck==0.8.0
+Pygments==2.14.0
+Pympler==1.0.1
+pyOpenSSL @ file:///croot/pyopenssl_1677607685877/work
+pyparsing==3.0.9
+pyrsistent==0.19.3
+PySocks @ file:///tmp/build/80754af9/pysocks_1605305812635/work
+python-dateutil==2.8.2
+python-magic==0.4.27
+python-slugify==8.0.1
+pytz==2022.7.1
+pytz-deprecation-shim==0.1.0.post0
+PyWavelets==1.4.1
+PyYAML==6.0
+regex==2022.10.31
+requests @ file:///croot/requests_1678709721434/work
+rich==13.3.2
+-e git+https://github.com/salesforce/LAVIS.git@baad2d7c8df599d8d9b081ba2e946626eaa2dc34#egg=salesforce_lavis
+scikit-image==0.20.0
+scipy==1.9.1
+semver==2.13.0
+sentencepiece==0.1.97
+six @ file:///tmp/build/80754af9/six_1644875935023/work
+smart-open==6.3.0
+smmap==5.0.0
+spacy==3.5.1
+spacy-legacy==3.0.12
+spacy-loggers==1.0.4
+srsly==2.4.6
+stack-data==0.6.2
+streamlit==1.20.0
+tenacity==8.2.2
+text-unidecode==1.3
+thinc==8.1.9
+tifffile==2023.2.28
+timm==0.4.12
+tokenizers==0.13.2
+toml==0.10.2
+toolz==0.12.0
+torch==1.13.1
+torchaudio==0.13.1
+torchvision==0.14.1
+tornado==6.2
+tqdm==4.65.0
+traitlets==5.9.0
+transformers==4.26.1
+typer==0.7.0
+typing_extensions @ file:///croot/typing_extensions_1669924550328/work
+tzdata==2022.7
+tzlocal==4.2
+urllib3 @ file:///croot/urllib3_1673575502006/work
+validators==0.20.0
+virtualenv==20.21.0
+wasabi==1.1.1
+watchdog==2.3.1
+wcwidth==0.2.6
+webdataset==0.2.39
+zipp==3.15.0
