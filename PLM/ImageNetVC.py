@@ -3,16 +3,17 @@ import copy
 import json
 import pandas
 import pickle
+import argparse
 import numpy as np
 from tqdm import tqdm
 
 import torch
-from transformers import GPTJForCausalLM, AutoTokenizer, GPT2Tokenizer, GPTNeoForCausalLM, OPTForCausalLM
+from transformers import AutoTokenizer, LlamaForCausalLM
 
 device = torch.device("cuda:0") if torch.cuda.is_available() else "cpu"
 
 
-def write_json(results, subset='color', model_name="opt-125m", path='./results', prompt_idx=0):
+def write_json(results, subset='color', model_name="llama-7B", path='./results', prompt_idx=0):
     model_path = os.path.join(path, model_name)
     if not os.path.exists(model_path):
         os.mkdir(model_path)
@@ -61,29 +62,36 @@ def load_prompt(question, idx=0):
     return prompts[idx]
 
 
-def init_model(model_name="opt-125m"):
+def load_demonstrations(subset, idx=0):
+    df = pandas.read_csv('./files/dataset/dev/{}.csv'.format(subset), header=0)
+    demonstrations = ""
+    for i in range(len(df)):
+        question = df['question'][i]
+        answer = df['answer'][i]
+        prompts = ["{} {}. ".format(question, answer),
+                   "{} Answer: {}. ".format(question, answer),
+                   "{} The answer is {}. ".format(question, answer),
+                   "Question: {} Answer: {}. ".format(question, answer),
+                   "Question: {} The answer is {}. ".format(question, answer),
+                   ]
+        demonstrations += prompts[idx]
+    return demonstrations
+
+
+def init_model(model_name="llama-7B"):
     tokenizer, model = None, None
-    if model_name == "gpt-j-6B":
-        tokenizer = AutoTokenizer.from_pretrained("/data/xhm/Data/pretrained_models/gpt-j-6B")
-        model = GPTJForCausalLM.from_pretrained("/data/xhm/Data/pretrained_models/gpt-j-6B", revision="float16",
-                                                torch_dtype=torch.float16, low_cpu_mem_usage=True).to(device)
-    elif model_name == "gpt-neo-1.3B":
-        tokenizer = GPT2Tokenizer.from_pretrained("/data/xhm/Data/pretrained_models/gpt-neo-1.3B")
-        model = GPTNeoForCausalLM.from_pretrained("/data/xhm/Data/pretrained_models/gpt-neo-1.3B").to(device)
-    elif model_name == "gpt-neo-2.7B":
-        tokenizer = GPT2Tokenizer.from_pretrained("/data/xhm/Data/pretrained_models/gpt-neo-2.7B")
-        model = GPTNeoForCausalLM.from_pretrained("/data/xhm/Data/pretrained_models/gpt-neo-2.7B").to(device)
-    elif model_name == "opt-6.7b":
-        tokenizer = AutoTokenizer.from_pretrained("/data/xhm/Data/pretrained_models/{}".format(model_name),
+    if model_name == "llama-30B" or model_name == "llama-65B":
+        tokenizer = AutoTokenizer.from_pretrained("/mnt/data/pretrained_models/LLAMA-hf/{}".format(model_name),
                                                   use_fast=False)
-        model = OPTForCausalLM.from_pretrained("/data/xhm/Data/pretrained_models/{}".format(model_name),
-                                               torch_dtype=torch.float16, low_cpu_mem_usage=True).to(device)
-    elif "opt" in model_name:
-        tokenizer = AutoTokenizer.from_pretrained("/data/xhm/Data/pretrained_models/{}".format(model_name),
+        model = LlamaForCausalLM.from_pretrained("/mnt/data/pretrained_models/LLAMA-hf/{}".format(model_name),
+                                                 torch_dtype=torch.float16, device_map="auto", low_cpu_mem_usage=True)
+    elif 'llama' in model_name:
+        tokenizer = AutoTokenizer.from_pretrained("/mnt/data/pretrained_models/LLAMA-hf/7B".format(model_name),
                                                   use_fast=False)
-        model = OPTForCausalLM.from_pretrained("/data/xhm/Data/pretrained_models/{}".format(model_name)).to(device)
+        model = LlamaForCausalLM.from_pretrained("/mnt/data/pretrained_models/LLAMA-hf/7B".format(model_name),
+                                                 torch_dtype=torch.float16, low_cpu_mem_usage=True).to(device)
     else:
-        print("Error: model not supported!!!\nSupported models: [gpt-neo-1.3B, gpt-neo-2.7B, gpt-j-6B, opt-30b]")
+        print("Error: model not supported!!!\nSupported models: [llama]")
     return tokenizer, model
 
 
@@ -93,15 +101,16 @@ def get_start_loc(tokenizer, prompt):
     return tokens.shape[1]
 
 
-def test(subset='color', model_name='gpt-neo-1.3B', prompt_idx=0):
+@torch.no_grad()
+def test(tokenizer, model, subset='color', model_name='llama-7B', prompt_idx=0, icl=False):
     cnt = 0
     correct = 0
     df = pandas.read_csv('./files/dataset/{}.csv'.format(subset), header=0)
-    tokenizer, model = init_model(model_name)
     results = []
     id2scores = {}
     for i in tqdm(range(len(df))):
         cnt += 1
+        sub_subset = None
         pred_scores = []  # prediction scores of candidates
         question = df['question'][i]
         answer = df['answer'][i]
@@ -116,6 +125,12 @@ def test(subset='color', model_name='gpt-neo-1.3B', prompt_idx=0):
         else:
             candidates = load_candidates(subset)
         prompt = load_prompt(question, prompt_idx)
+        if icl:
+            if subset == 'others':
+                demonstrations = load_demonstrations(sub_subset, idx=prompt_idx)
+            else:
+                demonstrations = load_demonstrations(subset, idx=prompt_idx)
+            prompt = demonstrations + prompt
         start_loc = get_start_loc(tokenizer, prompt)
         for candidate in candidates:
             sent = prompt + " {}.".format(candidate)
@@ -138,15 +153,14 @@ def test(subset='color', model_name='gpt-neo-1.3B', prompt_idx=0):
     return correct / cnt
 
 
-if __name__ == "__main__":
-    # opt-125m, opt-350m, opt-1.3b, opt-2.7b, opt-6.7b, gpt-neo-1.3B, gpt-neo-2.7B, gpt-j-6B
-    model_name = 'gpt-j-6B'
+def eval(model_name, use_icl):
     subset_list = ['color', 'shape', 'material', 'component', 'others']
+    tokenizer, model = init_model(model_name)
     for subset in subset_list:
         print("Tested on the {} subset...".format(subset))
         results = []
         for idx in range(0, 5):  # prompt idx
-            acc = test(subset=subset, model_name=model_name, prompt_idx=idx)
+            acc = test(tokenizer, model, subset=subset, model_name=model_name, prompt_idx=idx, icl=use_icl)
             results.append(acc)
         with open("./results/{}/{}/results.txt".format(model_name, subset), "w") as f:
             for idx, acc in enumerate(results):
@@ -154,3 +168,11 @@ if __name__ == "__main__":
             avg = np.mean(results)
             std = np.std(results, ddof=1)  # np.sqrt(( a.var() * a.size) / (a.size - 1))
             f.write("Mean result: {}, Std result: {}".format(100 * avg, 100 * std))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='parser of ImageNetVC')
+    parser.add_argument('--model-name', default='7B', type=str, help='Supported models: [llama-X]')
+    parser.add_argument('--use-icl', default=False, action='store_true', help='use in-context learning or not')
+    args = parser.parse_args()
+    eval(model_name=args.model_name, use_icl=args.use_icl)

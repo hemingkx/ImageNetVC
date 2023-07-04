@@ -1,6 +1,6 @@
 # PLM Evaluation
 
-This folder contains all the code used to reimplement our BLIP-2 evaluation. This repository is still under construction. We release the current version of codes to facilitate re-implementation.
+This folder contains all the code used to reimplement our BLIP-2 evaluation.
 
 ## Requirements
 

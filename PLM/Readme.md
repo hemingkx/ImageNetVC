@@ -1,6 +1,6 @@
 # PLM Evaluation
 
-This folder contains all the code used to reimplement our PLM evaluation. This repository is still under construction. We release the current version of codes to facilitate re-implementation.
+This folder contains all the code used to reimplement our PLM evaluation on ImageNetVC.
 
 ## Requirements
 
@@ -16,9 +16,10 @@ pip install -r requirements.txt
 
 ## Evaluation
 
+Please modify the `model_path` in the `init_model` function with your own. Then run the script with the following command:
+
+```
+CUDA_VISIBLE_DEVICES=0 python ImageNetVC.py --model-name llama-7B --use-icl
+```
+
 For details, please check  `ImageNetVC.py`.
-
-```
-python ./ImageNetVC.py
-```
-
