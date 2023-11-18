@@ -8,7 +8,7 @@ import numpy as np
 from tqdm import tqdm
 
 import torch
-from transformers import AutoTokenizer, LlamaForCausalLM
+from transformers import AutoTokenizer, LlamaForCausalLM, OPTForCausalLM
 
 device = torch.device("cuda:0") if torch.cuda.is_available() else "cpu"
 
@@ -63,7 +63,7 @@ def load_prompt(question, idx=0):
 
 
 def load_demonstrations(subset, idx=0):
-    df = pandas.read_csv('./files/dataset/dev/{}.csv'.format(subset), header=0)
+    df = pandas.read_csv('../datasets/dev/{}.csv'.format(subset), header=0)
     demonstrations = ""
     for i in range(len(df)):
         question = df['question'][i]
@@ -81,15 +81,19 @@ def load_demonstrations(subset, idx=0):
 def init_model(model_name="llama-7B"):
     tokenizer, model = None, None
     if model_name == "llama-30B" or model_name == "llama-65B":
-        tokenizer = AutoTokenizer.from_pretrained("/mnt/data/pretrained_models/LLAMA-hf/{}".format(model_name),
+        tokenizer = AutoTokenizer.from_pretrained("/home/xiaheming/data/pretrained_models/{}".format(model_name),
                                                   use_fast=False)
-        model = LlamaForCausalLM.from_pretrained("/mnt/data/pretrained_models/LLAMA-hf/{}".format(model_name),
+        model = LlamaForCausalLM.from_pretrained("/home/xiaheming/data/pretrained_models/{}".format(model_name),
                                                  torch_dtype=torch.float16, device_map="auto", low_cpu_mem_usage=True)
     elif 'llama' in model_name:
-        tokenizer = AutoTokenizer.from_pretrained("/mnt/data/pretrained_models/LLAMA-hf/7B".format(model_name),
+        tokenizer = AutoTokenizer.from_pretrained("/home/xiaheming/data/pretrained_models/{}".format(model_name),
                                                   use_fast=False)
-        model = LlamaForCausalLM.from_pretrained("/mnt/data/pretrained_models/LLAMA-hf/7B".format(model_name),
+        model = LlamaForCausalLM.from_pretrained("/home/xiaheming/data/pretrained_models/{}".format(model_name),
                                                  torch_dtype=torch.float16, low_cpu_mem_usage=True).to(device)
+    elif "opt" in model_name:
+        tokenizer = AutoTokenizer.from_pretrained("/home/xiaheming/data/pretrained_models/{}".format(model_name),
+                                                  use_fast=False)
+        model = OPTForCausalLM.from_pretrained("/home/xiaheming/data/pretrained_models/{}".format(model_name)).to(device)
     else:
         print("Error: model not supported!!!\nSupported models: [llama]")
     return tokenizer, model
@@ -105,7 +109,7 @@ def get_start_loc(tokenizer, prompt):
 def test(tokenizer, model, subset='color', model_name='llama-7B', prompt_idx=0, icl=False):
     cnt = 0
     correct = 0
-    df = pandas.read_csv('./files/dataset/{}.csv'.format(subset), header=0)
+    df = pandas.read_csv('../datasets/{}.csv'.format(subset), header=0)
     results = []
     id2scores = {}
     for i in tqdm(range(len(df))):
@@ -154,7 +158,7 @@ def test(tokenizer, model, subset='color', model_name='llama-7B', prompt_idx=0, 
 
 
 def eval(model_name, use_icl):
-    subset_list = ['color', 'shape', 'material', 'component', 'others']
+    subset_list = ['color']  # , 'shape', 'material', 'component', 'others'
     tokenizer, model = init_model(model_name)
     for subset in subset_list:
         print("Tested on the {} subset...".format(subset))
@@ -172,7 +176,7 @@ def eval(model_name, use_icl):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='parser of ImageNetVC')
-    parser.add_argument('--model-name', default='7B', type=str, help='Supported models: [llama-X]')
+    parser.add_argument('--model-name', default='llama-7b', type=str, help='Supported models: [llama-X, opt-X]')
     parser.add_argument('--use-icl', default=False, action='store_true', help='use in-context learning or not')
     args = parser.parse_args()
     eval(model_name=args.model_name, use_icl=args.use_icl)
