@@ -98,7 +98,7 @@ def get_name2idx_dict():
 
 
 def load_demonstrations(subset, idx=0):
-    df = pandas.read_csv('./files/dataset/dev/{}.csv'.format(subset), header=0)
+    df = pandas.read_csv('./files/datasets/dev/{}.csv'.format(subset), header=0)
     demonstrations = ""
     for i in range(len(df)):
         question = df['question'][i]
