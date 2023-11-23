@@ -8,11 +8,12 @@ from tqdm import tqdm
 from PIL import Image
 from scipy.special import softmax
 import requests
+import argparse
 from lavis.models import load_model_and_preprocess
 
 import torch
 
-device = torch.device("cuda:6") if torch.cuda.is_available() else "cpu"
+device = torch.device("cuda:0") if torch.cuda.is_available() else "cpu"
 
 
 def write_json(results, subset='color', image_type="rank", path='./results', prompt_idx=0):
@@ -96,17 +97,34 @@ def get_name2idx_dict():
     return dic_new
 
 
+def load_demonstrations(subset, idx=0):
+    df = pandas.read_csv('./files/dataset/dev/{}.csv'.format(subset), header=0)
+    demonstrations = ""
+    for i in range(len(df)):
+        question = df['question'][i]
+        answer = df['answer'][i]
+        prompts = ["{} {}. ".format(question, answer),
+                   "{} Answer: {}. ".format(question, answer),
+                   "{} The answer is {}. ".format(question, answer),
+                   "Question: {} Answer: {}. ".format(question, answer),
+                   "Question: {} The answer is {}. ".format(question, answer),
+                   ]
+        demonstrations += prompts[idx]
+    return demonstrations
+
+
 @torch.no_grad()
-def test(model, vis_processors, subset='color', image_type='synthesis', prompt_idx=0):
+def test(model, vis_processors, subset='color', image_type='synthesis', prompt_idx=0, icl=False):
     cnt = 0
     correct = 0
-    df = pandas.read_csv('./files/dataset/{}.csv'.format(subset), header=0)
-    ImageNet_path = '/data/xhm/Data/ImageNet/{}/'.format(image_type)  # the path that contains the images
+    df = pandas.read_csv('./files/datasets/{}.csv'.format(subset), header=0)
+    ImageNet_path = '/home/xiaheming/data/projects/ImageNetVC/{}/'.format(image_type)  # the path that contains the images
     name2idx = get_name2idx_dict()
     results = []
     id2scores = {}
     for i in tqdm(range(len(df))):
         cnt += 1
+        sub_subset = None
         category = df['category'][i]
         question = df['question'][i]
         answer = str(df['answer'][i]).lower()
@@ -121,6 +139,12 @@ def test(model, vis_processors, subset='color', image_type='synthesis', prompt_i
         else:
             candidates = load_candidates(subset)
         prefix = load_prompt(question, prompt_idx)
+        if icl:
+            if subset == 'others':
+                demonstrations = load_demonstrations(sub_subset, idx=prompt_idx)
+            else:
+                demonstrations = load_demonstrations(subset, idx=prompt_idx)
+            prefix = demonstrations + prefix
         prefix_tokens = model.opt_tokenizer(prefix, return_tensors="pt", truncation=True, max_length=512)
         start_loc = prefix_tokens.input_ids.size(1)
         img_dir = ImageNet_path + name2idx[category]
@@ -156,17 +180,15 @@ def test(model, vis_processors, subset='color', image_type='synthesis', prompt_i
     return correct / cnt
 
 
-def run():
-    # rank, search, synthesis, train
-    image_type = 'rank'
+def eval(model_name="blip2_opt", model_type="pretrain_opt2.7b", image_type='train', use_icl=False):
     subset_list = ['color', 'shape', 'material', 'component', 'others']
-    model, vis_processors, _ = load_model_and_preprocess(name="blip2_opt", model_type="pretrain_opt2.7b",
+    model, vis_processors, _ = load_model_and_preprocess(name=model_name, model_type=model_type,
                                                          is_eval=True, device=device)
     for subset in subset_list:
         print("Tested on the {} subset...".format(subset))
         results = []
         for idx in range(0, 5):  # prompt idx
-            acc = test(model, vis_processors, subset=subset, image_type=image_type, prompt_idx=idx)
+            acc = test(model, vis_processors, subset=subset, image_type=image_type, prompt_idx=idx, icl=use_icl)
             results.append(acc)
         with open("./results/{}/{}/results.txt".format(image_type, subset), "w") as f:
             for idx, acc in enumerate(results):
@@ -177,5 +199,12 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    parser = argparse.ArgumentParser(description='parser of ImageNetVC')
+    parser.add_argument('--model-name', default='blip2_opt', type=str, help='Supported models by BLIP-2')
+    parser.add_argument('--model-type', default='pretrain_opt2.7b', type=str, help='Supported model types by BLIP-2')
+    parser.add_argument('--image-type', default='train', type=str,
+                        help='Supported image types: rank, train (Original ImageNet Images)')
+    parser.add_argument('--use-icl', default=False, action='store_true', help='use in-context learning or not')
+    args = parser.parse_args()
+    eval(model_name=args.model_name, model_type=args.model_type, image_type=args.image_type, use_icl=args.use_icl)
 

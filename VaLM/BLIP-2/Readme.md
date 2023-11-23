@@ -13,27 +13,30 @@ Please follow the original guideline in [BLIP-2](https://github.com/salesforce/L
 
 ```
 conda create -n blip2_ivc python=3.7
-pip install -r requirements.txt
+cd LAVIS
+pip install -e .
 ```
 
 ## Image Sources
 
 We release the top-10 ranked images as well as ImageNet-1K images for re-implementation.
 
-ImageNet-1K images: [Google Drive Link](https://drive.google.com/file/d/1MWnFk1zpYf__NxDBlnASyQm09_omblcV/view?usp=sharing)
+ImageNet-1K images: [Google Drive Link](https://drive.google.com/file/d/1nwI1BlAWpKnXwIRh8J1tvxFJfcNtEZ6B/view?usp=sharing)
 
-Top-10 ranked images: [Baidu Pan Link](https://pan.baidu.com/s/1HlMMXuM1h3OARJY1JzfGwA?pwd=cgs2) (password: cgs2)
+Top-10 ranked images: [Google Drive Link](https://drive.google.com/file/d/1CTr68pkiH8cg55sAX1flbsFvZw86ZUC0/view?usp=sharing)
 
 
 ## Evaluation
 
 Please replace the files with the original files in [BLIP-2](https://github.com/salesforce/LAVIS).
 
-For details, please check  `ImageNetVC.py`.
+Run the script with the following command:
 
 ```
-python ./ImageNetVC.py
+CUDA_VISIBLE_DEVICES=0 python ImageNetVC.py --model-name blip2_opt --model-type pretrain_opt2.7b --image-type rank --use-icl
 ```
+
+For details, please check  `ImageNetVC.py`.
 
 ## Note
 
