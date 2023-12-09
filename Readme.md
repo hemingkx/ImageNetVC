@@ -35,13 +35,25 @@ For VaLM, `cd VaLM/BLIP-2` then follow [BLIP-2](https://github.com/salesforce/LA
 Please kindly cite our paper if you find our datasets or code useful:
 
 ```
-@article{xia2023imagenetvc,
-      title={ImageNetVC: Zero- and Few-Shot Visual Commonsense Evaluation on 1000 ImageNet Categories}, 
-      author={Heming Xia and Qingxiu Dong and Lei Li and Jingjing Xu and Tianyu Liu and Ziwei Qin and Zhifang Sui},
-      year={2023},
-      eprint={2305.15028},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
+@inproceedings{xia-etal-2023-imagenetvc,
+    title = "ImageNetVC: Zero- and Few-Shot Visual Commonsense Evaluation on 1000 ImageNet Categories",
+    author = "Xia, Heming  and
+      Dong, Qingxiu  and
+      Li, Lei  and
+      Xu, Jingjing  and
+      Liu, Tianyu  and
+      Qin, Ziwei  and
+      Sui, Zhifang",
+    editor = "Bouamor, Houda  and
+      Pino, Juan  and
+      Bali, Kalika",
+    booktitle = "Findings of the Association for Computational Linguistics: EMNLP 2023",
+    month = dec,
+    year = "2023",
+    address = "Singapore",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.findings-emnlp.133",
+    pages = "2009--2026",
 }
 ```
 
